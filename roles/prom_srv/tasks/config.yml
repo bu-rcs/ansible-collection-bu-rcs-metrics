@@ -1,0 +1,57 @@
+---
+- name: Create Prometheus config directories
+  ansible.builtin.file:
+    path: "{{ prom_srv_dir }}/etc/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - scrape_configs
+    - rules
+    - targets
+
+- name: Validate device inventory
+  ansible.builtin.import_tasks: validate.yml
+
+- name: Install Prometheus main config
+  ansible.builtin.template:
+    src: etc/prometheus.yml.j2
+    dest: "{{ prom_srv_dir }}/etc/prometheus.yml"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload Prometheus
+
+- name: Install Prometheus scrape configs
+  ansible.builtin.template:
+    src: etc/scrape_configs/job.yml.j2
+    dest: "{{ prom_srv_dir }}/etc/scrape_configs/{{ job }}.yml"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ prom_srv_cfg_jobs.keys() | sort }}"
+  loop_control:
+    loop_var: job
+  notify: Reload Prometheus
+
+- name: Install Prometheus rules
+  ansible.builtin.copy:
+    src: "etc/rules/{{ item }}"
+    dest: "{{ prom_srv_dir }}/etc/rules/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ prom_srv_cfg_rules }}"
+  notify: Reload Prometheus
+
+- name: Install Prometheus targets
+  ansible.builtin.template:
+    src: etc/targets/targets.json.j2
+    dest: "{{ prom_srv_dir }}/etc/targets/{{ exporter }}.json"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ prom_srv_cfg_devices.values() | map(attribute='exporters') | flatten | unique | sort }}"
+  loop_control:
+    loop_var: exporter

@@ -1,0 +1,56 @@
+---
+- name: Assert every device has a labels mapping
+  ansible.builtin.assert:
+    that:
+      - item.value.labels is defined
+      - item.value.labels is mapping
+    fail_msg: "Device {{ item.key }} has no labels mapping"
+    quiet: true
+  loop: "{{ prom_srv_cfg_devices | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Assert every device has the required labels
+  ansible.builtin.assert:
+    that:
+      - prom_srv_cfg_required_labels | difference(item.value.labels.keys() | list) | length == 0
+    fail_msg: >-
+      Device {{ item.key }} is missing required labels:
+      {{ prom_srv_cfg_required_labels | difference(item.value.labels.keys() | list) }}
+    quiet: true
+  loop: "{{ prom_srv_cfg_devices | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Assert the join key is not declared in labels
+  ansible.builtin.assert:
+    that:
+      - prom_srv_cfg_join_label not in item.value.labels
+    fail_msg: >-
+      Device {{ item.key }} declares {{ prom_srv_cfg_join_label }} in labels;
+      it is derived from the device key
+    quiet: true
+  loop: "{{ prom_srv_cfg_devices | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Assert every device declares at least one exporter
+  ansible.builtin.assert:
+    that:
+      - item.value.exporters is defined
+      - item.value.exporters | length > 0
+    fail_msg: "Device {{ item.key }} declares no exporters"
+    quiet: true
+  loop: "{{ prom_srv_cfg_devices | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Assert every declared exporter has a scrape job
+  vars:
+    _declared: "{{ prom_srv_cfg_devices.values() | map(attribute='exporters') | flatten | unique | sort }}"
+  ansible.builtin.assert:
+    that:
+      - _declared | difference(prom_srv_cfg_jobs.keys() | list) | length == 0
+    fail_msg: >-
+      Exporters declared on devices with no matching scrape job:
+      {{ _declared | difference(prom_srv_cfg_jobs.keys() | list) }}

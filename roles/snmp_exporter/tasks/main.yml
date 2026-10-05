@@ -1,0 +1,45 @@
+---
+- name: Create snmp-exporter service top level directories
+  ansible.builtin.file:
+    path: "{{ snmp_exporter_dir }}/{{ item.dir }}"
+    state: directory
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+    mode: "{{ item.mode | default('0755') }}"
+  loop:
+    - { dir:  "" }
+    - { dir: "etc" }
+
+- name: Install snmp-exporter config
+  ansible.builtin.template:
+    src: etc/snmp.yml.j2
+    dest: "{{ snmp_exporter_dir }}/etc/snmp.yml"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart snmp-exporter
+
+- name: Create snmp-exporter Podman Network
+  containers.podman.podman_network:
+    name: "{{ snmp_exporter_network }}"
+    state: present
+
+- name: Create snmp-exporter quadlet file
+  containers.podman.podman_container:
+    name: "{{ snmp_exporter_name }}"
+    image: "{{ snmp_exporter_image }}"
+    network: "{{ snmp_exporter_network }}"
+    state: quadlet
+    quadlet_filename: "{{ snmp_exporter_name }}"
+    command: "--config.file=/etc/snmp_exporter/snmp.yml"
+    quadlet_options:
+      - |
+        [Install]
+        WantedBy=default.target
+    volumes:
+      - "{{ snmp_exporter_dir }}/etc:/etc/snmp_exporter:ro,Z"
+  notify: Restart snmp-exporter
+
+- name: Reload systemd to generate quadlet units
+  ansible.builtin.systemd_service:
+    daemon_reload: true

@@ -1,0 +1,2 @@
+graf_srv_cfg: "{{ graf_srv_cfg_def 
+                  | combine(graf_srv_cfg_extra, recursive=True) }}"

@@ -1,0 +1,33 @@
+---
+node_exporter_version: "1.9.1"
+node_exporter_arch: linux-amd64
+node_exporter_port: 9100
+
+# Shared exporter layout. Repeated per role rather than shared, to satisfy
+# ansible-lint var-naming[no-role-prefix]. Keep values consistent across
+# exporter roles.
+node_exporter_prefix: /opt/prom_exporters
+node_exporter_state_dir: /var/lib/prom_exporters
+node_exporter_owner: monitor
+node_exporter_group: monitor
+node_exporter_uid: 600
+node_exporter_gid: 600
+node_exporter_home: /home/monitor
+node_exporter_shell: /sbin/nologin
+node_exporter_comment: "Monitor User"
+
+node_exporter_bin: "{{ node_exporter_prefix }}/bin/node_exporter"
+node_exporter_options_file: "{{ node_exporter_prefix }}/etc/node_exporter.options"
+node_exporter_textfile_dir: "{{ node_exporter_state_dir }}/node_exporter/textfile"
+
+node_exporter_cache_dir: /tmp/node_exporter-cache
+node_exporter_base_url: "https://github.com/prometheus/node_exporter/releases/download"
+
+# Overriding this list replaces it wholesale.
+node_exporter_flags:
+  - "--web.listen-address=:{{ node_exporter_port }}"
+  - "--collector.cpu.info"
+  - "--collector.textfile.directory={{ node_exporter_textfile_dir }}"
+
+# Hosts allowed to reach the exporter. Empty list disables IP filtering.
+node_exporter_allow_from: []

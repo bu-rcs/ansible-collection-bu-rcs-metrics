@@ -1,0 +1,6 @@
+- name: Restart snmp-exporter
+  ansible.builtin.systemd:
+    name: "{{ snmp_exporter_name }}"
+    state: restarted
+    daemon_reload: true
+  when: not ansible_check_mode

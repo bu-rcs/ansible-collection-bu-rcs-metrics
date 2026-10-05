@@ -1,0 +1,14 @@
+namespace: bu_rcs
+name: metrics
+version: 0.1.0
+readme: README.md
+authors:
+  - augustin@bu.edu
+description: >-
+  Ansible roles for the Prometheus/Grafana monitoring stack on the BU Shared
+  Computing Cluster.
+license:
+  - MIT
+dependencies:
+  community.general: "*"
+  containers.podman: "*"

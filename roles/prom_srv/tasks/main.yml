@@ -1,0 +1,7 @@
+- name: Deploy Prometheus server
+  import_tasks: deploy.yml
+  tags: [prom_deploy]
+
+- name: Deploy Pormetheus configuration
+  import_tasks: config.yml
+  tags: [prom_config]
