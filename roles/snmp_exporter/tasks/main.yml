@@ -7,7 +7,7 @@
     group: "{{ item.group | default('root') }}"
     mode: "{{ item.mode | default('0755') }}"
   loop:
-    - { dir:  "" }
+    - { dir: "" }
     - { dir: "etc" }
 
 - name: Install snmp-exporter config

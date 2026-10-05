@@ -7,7 +7,7 @@
     group: "{{ item.group | default('root') }}"
     mode: "{{ item.mode | default('0755') }}"
   loop:
-    - { dir:  "" }
+    - { dir: "" }
     - { dir: "data", owner: 65534, group: 65534 }
     - { dir: "etc" }
 
