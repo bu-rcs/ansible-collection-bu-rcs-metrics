@@ -29,6 +29,7 @@
         remote_src: true
         creates: "{{ node_exporter_cache_dir }}/node_exporter-{{ node_exporter_version }}.{{ node_exporter_arch }}/node_exporter"
       changed_when: false
+  when: not ansible_check_mode
 
 - name: Create exporter group
   ansible.builtin.group:
