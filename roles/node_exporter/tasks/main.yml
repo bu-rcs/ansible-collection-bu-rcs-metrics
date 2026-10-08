@@ -3,6 +3,7 @@
   become: false
   delegate_to: localhost
   run_once: true
+  check_mode: false
   block:
     - name: Create controller cache directory
       ansible.builtin.file:
@@ -29,7 +30,6 @@
         remote_src: true
         creates: "{{ node_exporter_cache_dir }}/node_exporter-{{ node_exporter_version }}.{{ node_exporter_arch }}/node_exporter"
       changed_when: false
-  check_mode: false
 
 - name: Create exporter group
   ansible.builtin.group:
