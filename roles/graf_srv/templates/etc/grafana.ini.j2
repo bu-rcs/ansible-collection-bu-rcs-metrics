@@ -1,0 +1,7 @@
+{% for section, settings in graf_srv_cfg | dictsort %}
+[{{ section }}]
+{% for key, value in settings | dictsort %}
+{{ key }} = {{ value | lower if value is boolean else value }}
+{% endfor %}
+
+{% endfor %}

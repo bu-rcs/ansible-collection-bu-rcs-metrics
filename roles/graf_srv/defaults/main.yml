@@ -1,0 +1,24 @@
+graf_srv_instance: "rcs"
+graf_srv_name: "{{ graf_srv_instance }}-grafana"
+graf_srv_network: "{{ graf_srv_name }}"
+graf_srv_dir: "/srv/{{ graf_srv_name }}"
+graf_srv_image: "docker.io/grafana/grafana:13.1"
+graf_srv_hostbind: "0.0.0.0"
+graf_srv_port_ext: "3000"
+graf_srv_port_int: "3000"
+graf_srv_ports:
+  - "{{ graf_srv_hostbind }}:{{ graf_srv_port_ext }}:{{ graf_srv_port_int }}"
+graf_srv_hostname: "{{ inventory_hostname }}"
+graf_srv_cfg_def:
+  server:
+    root_url: "https://{{ graf_srv_hostname }}/grafana"
+    serve_from_sub_path: true
+  security:
+    cookie_secure: true
+    disable_gravatar: true
+  analytics:
+    reporting_enabled: false
+  live:
+    max_connections: 0
+graf_srv_cfg_extra: {}
+graf_srv_cfg_datasources: []

@@ -1,0 +1,52 @@
+---
+- name: Create Prometheus services top level directories
+  ansible.builtin.file:
+    path: "{{ prom_srv_dir }}/{{ item.dir }}"
+    state: directory
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+    mode: "{{ item.mode | default('0755') }}"
+  loop:
+    - { dir: "" }
+    - { dir: "data", owner: 65534, group: 65534 }
+    - { dir: "etc" }
+
+- name: Handle SELinux
+  ansible.builtin.include_tasks: selinux.yml
+  when: ansible_selinux.status | default('disabled') != 'disabled'
+
+- name: Create Prometheus Podman Network
+  containers.podman.podman_network:
+    name: "{{ prom_srv_network }}"
+    state: present
+
+- name: Create Prometheus quadlet file
+  containers.podman.podman_container:
+    name: "{{ prom_srv_name }}"
+    image: "{{ prom_srv_image }}"
+    network: "{{ prom_srv_network }}"
+    state: quadlet
+    quadlet_filename: "{{ prom_srv_name }}"
+    command: >-
+      --config.file=/etc/prometheus/prometheus.yml
+      --storage.tsdb.path=/prometheus
+      --storage.tsdb.retention.time={{ prom_srv_retention }}
+      --storage.tsdb.retention.size={{ prom_srv_max_size }}
+      {{ prom_srv_extra_flags }}
+    quadlet_options:
+      - |
+        [Service]
+        TimeoutStartSec=900
+        ExecReload=/usr/bin/podman kill -s HUP {{ prom_srv_name }}
+      - |
+        [Install]
+        WantedBy=default.target
+    volumes:
+      - "{{ prom_srv_dir }}/etc:/etc/prometheus:ro,Z"
+      - "{{ prom_srv_dir }}/data:/prometheus:rw,Z"
+    ports: "{{ prom_srv_ports }}"
+  notify: Restart Prometheus
+
+- name: Reload systemd to generate quadlet units
+  ansible.builtin.systemd_service:
+    daemon_reload: true
