@@ -1,0 +1,5 @@
+snmp_exporter_instance: "rcs"
+snmp_exporter_name: "{{ snmp_exporter_instance }}-snmp-exporter"
+snmp_exporter_network: "{{ snmp_exporter_name }}"
+snmp_exporter_dir: "/srv/{{ snmp_exporter_instance }}-snmp-exporter"
+snmp_exporter_image: "docker.io/prom/snmp-exporter:v0.29.0"

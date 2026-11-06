@@ -1,0 +1,3 @@
+{{ {'scrape_configs': [
+     prom_srv_cfg_jobs[job] | combine({'job_name': job})
+   ]} | to_nice_yaml(indent=2) }}

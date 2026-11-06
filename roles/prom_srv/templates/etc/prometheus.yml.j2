@@ -1,0 +1,7 @@
+global:
+{{ prom_srv_cfg_global | to_nice_yaml(indent=2) | indent(2, first=True) }}
+scrape_config_files:
+  - /etc/prometheus/scrape_configs/*.yml
+
+rule_files:
+  - /etc/prometheus/rules/*.yml

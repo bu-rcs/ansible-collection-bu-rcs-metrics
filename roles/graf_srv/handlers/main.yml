@@ -1,0 +1,6 @@
+- name: Restart Grafana
+  ansible.builtin.systemd:
+    name: "{{ graf_srv_name }}"
+    state: restarted
+    daemon_reload: true
+  when: not ansible_check_mode

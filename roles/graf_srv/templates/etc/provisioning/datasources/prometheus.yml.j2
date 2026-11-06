@@ -1,0 +1,13 @@
+apiVersion: 1
+
+datasources:
+  - name: {{ item.name }}
+    uid: {{ item.uid }}
+    type: prometheus
+    access: proxy
+    url: {{ item.url }}
+    isDefault: {{ item.is_default | default(false) | lower }}
+    editable: false
+    jsonData:
+      timeInterval: {{ item.scrape_interval | default('30s') }}
+      httpMethod: POST

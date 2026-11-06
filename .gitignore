@@ -1,0 +1,20 @@
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+
+# Python / Ansible tooling
+__pycache__/
+*.pyc
+.venv/
+
+# Ansible
+*.retry
+*.vault_pass
+.cache/
+
+# Build output
+/*.tar.gz

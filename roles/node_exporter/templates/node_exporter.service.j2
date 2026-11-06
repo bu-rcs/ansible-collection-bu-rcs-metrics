@@ -1,0 +1,31 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Prometheus node_exporter
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User={{ node_exporter_owner }}
+Group={{ node_exporter_group }}
+EnvironmentFile={{ node_exporter_options_file }}
+ExecStart={{ node_exporter_bin }} $OPTIONS
+Restart=always
+RestartSec=60
+
+# restrictions
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+CapabilityBoundingSet=
+{% if node_exporter_allow_from | length > 0 %}
+
+# Per-unit network ACL. Requires cgroup v2 + BPF. Filters both directions.
+IPAddressDeny=any
+IPAddressAllow=localhost
+{% for addr in node_exporter_allow_from %}
+IPAddressAllow={{ addr }}
+{% endfor %}
+{% endif %}
+
+[Install]
+WantedBy=multi-user.target

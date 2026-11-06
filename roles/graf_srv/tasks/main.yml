@@ -1,0 +1,64 @@
+---
+- name: Create Grafana services top level directories
+  ansible.builtin.file:
+    path: "{{ graf_srv_dir }}/{{ item.dir }}"
+    state: directory
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+    mode: "{{ item.mode | default('0755') }}"
+  loop:
+    - { dir: "" }
+    - { dir: "etc" }
+    - { dir: "etc/provisioning" }
+    - { dir: "etc/provisioning/access-control" }
+    - { dir: "etc/provisioning/alerting" }
+    - { dir: "etc/provisioning/dashboards" }
+    - { dir: "etc/provisioning/datasources" }
+    - { dir: "etc/provisioning/notifiers" }
+    - { dir: "etc/provisioning/plugins" }
+    - { dir: "data", owner: "472", group: "472" }
+
+- name: Install Grafana main config
+  ansible.builtin.template:
+    src: etc/grafana.ini.j2
+    dest: "{{ graf_srv_dir }}/etc/grafana.ini"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Grafana
+
+- name: Install Grafana datasources
+  ansible.builtin.template:
+    src: "etc/provisioning/datasources/prometheus.yml.j2"
+    dest: "{{ graf_srv_dir }}/etc/provisioning/datasources/{{ item.uid }}.yml"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ graf_srv_cfg_datasources }}"
+  notify: Restart Grafana
+
+- name: Create Grafana Podman Network
+  containers.podman.podman_network:
+    name: "{{ graf_srv_network }}"
+    state: present
+
+- name: Create Grafana quadlet file
+  containers.podman.podman_container:
+    name: "{{ graf_srv_name }}"
+    image: "{{ graf_srv_image }}"
+    network: "{{ graf_srv_network }}"
+    state: quadlet
+    quadlet_filename: "{{ graf_srv_name }}"
+    quadlet_options:
+      - |
+        [Install]
+        WantedBy=default.target
+    volumes:
+      - "{{ graf_srv_dir }}/etc:/etc/grafana:ro,Z"
+      - "{{ graf_srv_dir }}/data:/var/lib/grafana:rw,Z"
+    ports: "{{ graf_srv_ports }}"
+  notify: Restart Grafana
+
+- name: Reload systemd to generate quadlet units
+  ansible.builtin.systemd_service:
+    daemon_reload: true

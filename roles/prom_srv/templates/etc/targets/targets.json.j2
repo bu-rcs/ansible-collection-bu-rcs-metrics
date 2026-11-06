@@ -1,0 +1,13 @@
+{%- set out = [] -%}
+{%- set port = prom_srv_cfg_exporter_ports.get(exporter) -%}
+{%- for name, dev in prom_srv_cfg_devices | dictsort -%}
+{%- if exporter in dev.exporters -%}
+{%- set _ = out.append({
+      'targets': [name ~ (':' ~ port if port else '')],
+      'labels': {prom_srv_cfg_join_label: name}
+                | combine(dev.labels)
+                | combine(dev.target_labels[exporter] | default({}))
+    }) -%}
+{%- endif -%}
+{%- endfor -%}
+{{ out | tojson(indent=2) }}
