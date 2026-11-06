@@ -43,7 +43,7 @@
         WantedBy=default.target
     volumes:
       - "{{ prom_srv_dir }}/etc:/etc/prometheus:ro,Z"
-      - "{{ prom_srv_dir }}/data:/prometheus:rw,Z"
+      - "{{ prom_srv_dir }}/data:/prometheus:rw,z"
     ports: "{{ prom_srv_ports }}"
   notify: Restart Prometheus
 
